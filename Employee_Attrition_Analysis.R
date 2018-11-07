@@ -32,8 +32,8 @@ employee_data[, character_indices] <- lapply(employee_data[,character_indices], 
 str(employee_data)
 
 
-employee_data$Age <- employee_data$ï..Age
-employee_data <- select(employee_data, -ï..Age) 
+employee_data$Age <- employee_data$Ã¯..Age
+employee_data <- select(employee_data, -Ã¯..Age) 
 
 #Checking for NA/missing values
 sum(!complete.cases(employee_data))
@@ -43,13 +43,43 @@ sum(!complete.cases(employee_data))
 colSums(is.na(employee_data))
 #Shows that none of the columns have NA values
 
+
+#Checking for Duplicate entries
+nrow(employee_data[!(duplicated(employee_data)),])
+nrow(employee_data)
+
+
+#Handling outliers
+
+#In case of categorical variables, check the number of entries in each category so that the values outside
+categorical_indices <- sapply(employee_data, is.factor)
+outlier_data <- lapply(employee_data[, categorical_indices], table)
+
+#Numerical values
+#TotalWorkingYears
+employee_data$TotalWorkingYears[employee_data$TotalWorkingYears %in% boxplot.stats(employee_data$TotalWorkingYears)$out]<- median(employee_data$TotalWorkingYears)
+boxplot(employee_data$TotalWorkingYears)
+
+
+boxplot(employee_data$TrainingTimesLastYear)
+
+boxplot(employee_data$YearsInCurrentRole)
+boxplot(employee_data$YearsSinceLastPromotion)
+employee_data$YearsSinceLastPromotion[employee_data$YearsSinceLastPromotion %in% boxplot.stats(employee_data$YearsSinceLastPromotion)$out]<- median(employee_data$YearsSinceLastPromotion)
+boxplot(employee_data$YearsSinceLastPromotion)
+
+boxplot(employee_data$YearsWithCurrManager)
+
+
 #Unnecessary columns through investigation
 #1. Employee Number - Considering it as a unique employee identification number. It would not add much value to analysis
 #2. StandardHours - Considering its value = 80 across all the rows in the dataset, it can be deleted.
 
 employee_data$EmployeeNumber <- NULL
 employee_data$StandardHours <- NULL
-
+employee_data$EmployeeCount <- NULL
+employee_data$DailyRate <- NULL
+employee_data$Over18 <- NULL
 
 #Step 2 - DATA EXPLORATION & DESCRIPTIVE STATISTICS
 
@@ -73,11 +103,4 @@ boxplot(stats_summary$DailyRate)
     #e. Work life balance, distance from home
     #f. Year at a company
 #5. Years with Manager, Percentage Hike
-
-#5. 
-
-
-
-
-
 
