@@ -23,8 +23,6 @@ str(employee_data)
 #Checking the rows and columns in the dataset
 dim(employee_data)
 
-#Step 1  - DATA PRE-PROCESSING
-
 #Converting the character columns into categories
 character_indices <- sapply(employee_data, is.character)
 employee_data[, character_indices] <- lapply(employee_data[,character_indices], as.factor)
@@ -48,7 +46,6 @@ colSums(is.na(employee_data))
 nrow(employee_data[!(duplicated(employee_data)),])
 nrow(employee_data)
 
-
 #Handling outliers
 
 #In case of categorical variables, check the number of entries in each category so that the values outside
@@ -57,6 +54,9 @@ outlier_data <- lapply(employee_data[, categorical_indices], table)
 
 #Numerical values
 #TotalWorkingYears
+
+
+#To check the outliers using boxplot
 employee_data$TotalWorkingYears[employee_data$TotalWorkingYears %in% boxplot.stats(employee_data$TotalWorkingYears)$out]<- median(employee_data$TotalWorkingYears)
 boxplot(employee_data$TotalWorkingYears)
 
@@ -81,26 +81,35 @@ employee_data$EmployeeCount <- NULL
 employee_data$DailyRate <- NULL
 employee_data$Over18 <- NULL
 
-#Step 2 - DATA EXPLORATION & DESCRIPTIVE STATISTICS
-
 num_indices <- sapply(employee_data, is.numeric)
 stats_summary <- lapply(employee_data[,num_indices], summary)
 
 stats_summary
 
-#Using boxplot and histogram to determine the distribution of numerical vectors
-boxplot(stats_summary$DailyRate)
+#Conversion of features into categorical type
+employee_data$Education <- as.factor(employee_data$Education)
+employee_data$EnvironmentSatisfaction <- as.factor(employee_data$EnvironmentSatisfaction)
+employee_data$JobInvolvement <- as.factor(employee_data$JobInvolvement)
+employee_data$JobSatisfaction <- as.factor(employee_data$JobSatisfaction)
+employee_data$PerformanceRating <- as.factor(employee_data$PerformanceRating)
+employee_data$RelationshipSatisfaction <- as.factor(employee_data$RelationshipSatisfaction)
+employee_data$WorkLifeBalance <- as.factor(employee_data$WorkLifeBalance)
+employee_data$JobLevel <- as.factor(employee_data$JobLevel)
+employee_data$StockOptionLevel <- as.factor(employee_data$StockOptionLevel)
 
-#Some questions to investigate
-#1. How does attrition vary across each Departments with an employee count and environment satisfaction? - Categorised Bar charts
-#2. Do HourlyRate, job satisfaction, job involvement affect each other? If so how? - Scatter plot, with size or color as third parameter
-#3. Show performance rating groups with attrition
-#4. Showing distributions of - 
-    #a. BUsiness Travel
-    #b. Age - so that it can be bucketized
-    #c. MaritalStatus with RelationshipSatisfaction
-    #d. TotalWorkingHours
-    #e. Work life balance, distance from home
-    #f. Year at a company
-#5. Years with Manager, Percentage Hike
 
+#Normalization of numerical data
+
+#Maintain the separate copies if normalized and not-bnormalized data  - so that modelling is done easily.
+normalized_empl_data <- employee_data
+
+normalized_empl_data$MonthlyIncome <- scale(normalized_empl_data$MonthlyIncome)
+normalized_empl_data$NumCompaniesWorked <- scale(normalized_empl_data$NumCompaniesWorked)
+normalized_empl_data$PercentSalaryHike <- scale(normalized_empl_data$PercentSalaryHike)
+normalized_empl_data$TotalWorkingYears <- scale(normalized_empl_data$TotalWorkingYears)
+normalized_empl_data$YearsAtCompany <- scale(normalized_empl_data$YearsAtCompany)
+normalized_empl_data$TrainingTimesLastYear <- scale(normalized_empl_data$TrainingTimesLastYear)
+normalized_empl_data$YearsInCurrentRole <- scale(normalized_empl_data$YearsInCurrentRole)
+normalized_empl_data$YearsSinceLastPromotion <- scale(normalized_empl_data$YearsSinceLastPromotion)
+normalized_empl_data$YearsWithCurrManager <- scale(normalized_empl_data$YearsWithCurrManager)
+normalized_empl_data$MonthlyIncome <- scale(normalized_empl_data$MonthlyIncome)
