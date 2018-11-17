@@ -113,3 +113,20 @@ normalized_empl_data$YearsInCurrentRole <- scale(normalized_empl_data$YearsInCur
 normalized_empl_data$YearsSinceLastPromotion <- scale(normalized_empl_data$YearsSinceLastPromotion)
 normalized_empl_data$YearsWithCurrManager <- scale(normalized_empl_data$YearsWithCurrManager)
 normalized_empl_data$MonthlyIncome <- scale(normalized_empl_data$MonthlyIncome)
+
+
+############################################################
+#Code for Discretization of Variables
+############################################################
+#Age
+#Hourly Rate
+#DistanceFromHome
+#PercentSalaryHike
+#YearsWithCurrentManager
+##################################################################################################################################33
+employee_data$Age_level <- discretize(employee_data$Age, method = "interval",breaks = 4, labels = c("Young","Thirties","Forties","Old"))
+employee_data$HourlyRate_level <- discretize(employee_data$HourlyRate, method = "interval",breaks = 7, labels = c("30-40","40-50","50-60","60-70","70-80","80-90","80-100"))
+employee_data$DistanceFromHome_level <- discretize(employee_data$DistanceFromHome, method = "interval",breaks = 6, labels = c("1-5","6-10","11-15","16-20","21-25","26-30"))
+employee_data$PercentSalaryHike_level <- discretize(employee_data$PercentSalaryHike, method = "interval",breaks = 3, labels = c("11%-15%","16%-20%","21%-25%"))
+employee_data$YearsWithCurrManager_level <- cut(employee_data$YearsWithCurrManager, method = "interval", breaks = 6, labels  = c('0-3','4-6','7-9','10-12','13-15','16-18'))
+
