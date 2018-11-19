@@ -5,14 +5,14 @@
 #Load the required libraries
 library(caret)
 library(dplyr)
-
+library(arules)
 
 #Read the data
 
 employee_data <- read.csv('C://Users/sanja/Desktop/Courses_Fall2018/IST707/Project/IBM_Employee_Attrition_Dataset.csv'
                           , header = T
                           , stringsAsFactors = F
-                          )
+)
 #View the data
 View(employee_data)
 
@@ -45,6 +45,8 @@ colSums(is.na(employee_data))
 #Checking for Duplicate entries
 nrow(employee_data[!(duplicated(employee_data)),])
 nrow(employee_data)
+#Shows there are no duplicate entries and all the rows in the dataset are unique and individual data
+
 
 #Handling outliers
 
@@ -86,6 +88,11 @@ stats_summary <- lapply(employee_data[,num_indices], summary)
 
 stats_summary
 
+#Check the dataset dimensions
+dim(employee_data)
+
+#We have reduced the number of features from 35 to useful 30 features.
+
 #Conversion of features into categorical type
 employee_data$Education <- as.factor(employee_data$Education)
 employee_data$EnvironmentSatisfaction <- as.factor(employee_data$EnvironmentSatisfaction)
@@ -98,9 +105,40 @@ employee_data$JobLevel <- as.factor(employee_data$JobLevel)
 employee_data$StockOptionLevel <- as.factor(employee_data$StockOptionLevel)
 
 
+############################################################
+#Discretization of Variables
+############################################################
+#Age
+#Hourly Rate
+#DistanceFromHome
+#PercentSalaryHike
+#YearsWithCurrentManager
+##################################################################################################################################33
+
+#Consdiering the difference in the versions of R and arules, use the functions cut or discretize depending upon the system.
+
+#In old versions,
+employee_data$Age_level <- cut(employee_data$Age, method = "interval",breaks = 4, labels = c("Young","Thirties","Forties","Old"))
+employee_data$HourlyRate_level <- cut(employee_data$HourlyRate, method = "interval",breaks = 7, labels = c("30-40","40-50","50-60","60-70","70-80","80-90","80-100"))
+employee_data$DistanceFromHome_level <- cut(employee_data$DistanceFromHome, method = "interval",breaks = 6, labels = c("1-5","6-10","11-15","16-20","21-25","26-30"))
+employee_data$PercentSalaryHike_level <- cut(employee_data$PercentSalaryHike, method = "interval",breaks = 3, labels = c("11%-15%","16%-20%","21%-25%"))
+employee_data$YearsWithCurrManager_level <- cut(employee_data$YearsWithCurrManager, method = "interval", breaks = 6, labels  = c('0-3','4-6','7-9','10-12','13-15','16-18'))
+
+#In latest version,
+employee_data$Age_level <- discretize(employee_data$Age, method = "interval",breaks = 4, labels = c("Young","Thirties","Forties","Old"))
+employee_data$HourlyRate_level <- discretize(employee_data$HourlyRate, method = "interval",breaks = 7, labels = c("30-40","40-50","50-60","60-70","70-80","80-90","80-100"))
+employee_data$DistanceFromHome_level <- discretize(employee_data$DistanceFromHome, method = "interval",breaks = 6, labels = c("1-5","6-10","11-15","16-20","21-25","26-30"))
+employee_data$PercentSalaryHike_level <- discretize(employee_data$PercentSalaryHike, method = "interval",breaks = 3, labels = c("11%-15%","16%-20%","21%-25%"))
+employee_data$YearsWithCurrManager_level <- discretize(employee_data$YearsWithCurrManager, method = "interval", breaks = 6, labels  = c('0-3','4-6','7-9','10-12','13-15','16-18'))
+
+#Maintain separate copies of dataset so that preprocessing steps that are specific to each algorithm can be performed
+#during the respective algorithm execution.
+
+employee_data_copy = employee_data
+
 #Normalization of numerical data
 
-#Maintain the separate copies if normalized and not-bnormalized data  - so that modelling is done easily.
+#The separate copies of normalized and not-normalized data.
 normalized_empl_data <- employee_data
 
 normalized_empl_data$MonthlyIncome <- scale(normalized_empl_data$MonthlyIncome)
@@ -114,19 +152,4 @@ normalized_empl_data$YearsSinceLastPromotion <- scale(normalized_empl_data$Years
 normalized_empl_data$YearsWithCurrManager <- scale(normalized_empl_data$YearsWithCurrManager)
 normalized_empl_data$MonthlyIncome <- scale(normalized_empl_data$MonthlyIncome)
 
-
-############################################################
-#Code for Discretization of Variables
-############################################################
-#Age
-#Hourly Rate
-#DistanceFromHome
-#PercentSalaryHike
-#YearsWithCurrentManager
-##################################################################################################################################33
-employee_data$Age_level <- discretize(employee_data$Age, method = "interval",breaks = 4, labels = c("Young","Thirties","Forties","Old"))
-employee_data$HourlyRate_level <- discretize(employee_data$HourlyRate, method = "interval",breaks = 7, labels = c("30-40","40-50","50-60","60-70","70-80","80-90","80-100"))
-employee_data$DistanceFromHome_level <- discretize(employee_data$DistanceFromHome, method = "interval",breaks = 6, labels = c("1-5","6-10","11-15","16-20","21-25","26-30"))
-employee_data$PercentSalaryHike_level <- discretize(employee_data$PercentSalaryHike, method = "interval",breaks = 3, labels = c("11%-15%","16%-20%","21%-25%"))
-employee_data$YearsWithCurrManager_level <- cut(employee_data$YearsWithCurrManager, method = "interval", breaks = 6, labels  = c('0-3','4-6','7-9','10-12','13-15','16-18'))
 
