@@ -15,6 +15,7 @@ library(ROSE)
 library(rpart)
 library(DMwR)
 library(xgboost)
+library(tictoc)
 ################################
 #
 #Introduction to Extreme Gradient Boosting classifier
@@ -68,7 +69,7 @@ xgbm_test <- XGBM_smote_data[-train_indices,]
 #Define the cross validation
 tr_control <- trainControl(method = 'cv', number = 5, classProbs = T)
 xgbm_grid <- expand.grid(
-  max_depth = 20
+  max_depth = 12
   , subsample = 0.9
   , nrounds  = 200
   , gamma  = 0.01
@@ -103,6 +104,48 @@ predict_XGBM <- suppressWarnings(
 confusionMatrix(as.factor(predict_XGBM), as.factor(xgbm_test$Attrition))
 xgbm_auc <- auc(as.numeric(xgbm_test$Attrition), as.numeric(predict_XGBM))
 xgbm_auc
+
+#GBM Model 2
+xgbm_control <- trainControl(method = 'cv', number = 5, classProbs = T)
+
+xgbm_grid_2 <- expand.grid(
+  max_depth = 15
+  , subsample = 0.9
+  , nrounds  = 500
+  , gamma  = 0.8
+  , colsample_bytree = 0.7
+  , min_child_weight = 1
+  , eta = 0.03
+  
+  
+)
+
+tic('XGBM_Model_2')
+
+XGBM_model_2 = suppressWarnings(train(Attrition~., data=xgbm_train
+                                    , method="xgbTree"
+                                    , verbose = F
+                                    , metric="ROC"
+                                    , trControl=xgbm_control
+                                    , maximize = FALSE
+                                    , tuneGrid = xgbm_grid_2
+                                ))
+toc()
+
+#Predict using the XGBM Model 
+predict_XGBM_2 <- suppressWarnings(
+  predict(XGBM_model_2
+          ,newdata = xgbm_test
+  )
+)
+
+#Evaluating the model
+
+confusionMatrix(as.factor(predict_XGBM_2), as.factor(xgbm_test$Attrition))
+auc(as.numeric(xgbm_test$Attrition), as.numeric(predict_XGBM_2))
+xgbm_auc_2
+
+
 
 #Hence, this gives the best performance
 
