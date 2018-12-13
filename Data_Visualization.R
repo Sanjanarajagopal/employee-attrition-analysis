@@ -2,33 +2,57 @@
 library(caret)
 library(dplyr)
 library(arules)
+library(corrplot)
+
+#################################
+#Data Exploration
+#################################
+#1. Show the departments 
+dept_data <- table(final_data$Department)
+dept_data
+
+pie(dept_data)
+
+#2. Show the gender
+gender_data <- table(final_data$Gender)
+gender_data
+
+barplot(gender_data)
+
+#3. Age distribution
+boxplot(employee_data$Age)
+hist(employee_data$Age)
+
+#4. Correlation between attributes
+
+corrplot(cor(sapply(final_data,as.integer)),method = "color")
+
+
 
 ########################################3
 #Visualizations
 ####################################################
 #1. How does attrition vary across each Departments and environment satisfaction? - Categorised Bar charts
 ##########################################################
-employee_data <- normalized_empl_data
-dept_attr_data <- tapply(as.numeric(employee_data$Attrition), list(employee_data$Department,employee_data$EnvironmentSatisfaction), FUN = sum)
+par(mfrow = c(1,1))
+dept_attr_data <- tapply(as.numeric(final_data$Attrition), list(final_data$Department,final_data$EnvironmentSatisfaction), FUN = sum)
 dept_attr_data
 
 colnames(dept_attr_data) <- c('Department', 'EnvironmentSatisfaction', 'Attrition')
+
 
 barplot(t(dept_attr_data)
         ,beside = T
         , col = c('green4', 'red4', 'tan4', 'grey')
         
-        )
-plot(employee_data$HourlyRate, employee_data$NumCompaniesWorked)
+)
 
-################################################################
-#BubbleChart
+
 ###########################################
 #BubbleChart
-par(mar=c(1,1,1,1))
-View(final_data)
+par(mfrow=c(1,1))
+
 attr_data <- aggregate(as.numeric(final_data$Attrition), list(final_data$RelationshipSatisfaction,final_data$JobSatisfaction), FUN = sum)
-View(attr_data)
 symbols(as.numeric(attr_data$Group.1), as.numeric(attr_data$Group.2), circles=attr_data$x)
 str(attr_data)
 radius <- sqrt(attr_data$x/pi)
@@ -44,21 +68,10 @@ text(attr_data$Group.1, attr_data$Group.2, attr_data$x, cex=0.6)
 
 
 
-##################################################################
-#Correlation Matrix
-#######################################################
-install.packages("corrplot")
-library(corrplot)
-corrplot(cor(sapply(final_data,as.integer)),method = "color")
-
-
 ####################################################################
 #Stacked BarPlot for entire data
 #################################################
 
-install.packages("ggplot2")
-library("ggplot2")
-library("dplyr")
 
 #Travel
 a2<- final_data %>%
@@ -71,7 +84,6 @@ a2<- final_data %>%
   ggtitle("Attrition according to the Business Travel")+
   geom_text(aes(label = n), vjust = -0.5, position = position_dodge(0.9))
 
-View(final_data)
 a2
 
 #Gender
@@ -93,9 +105,7 @@ a4<- final_data %>%
   tally() %>%
   ggplot(aes(x = Department, y = n,fill=Attrition)) +
   geom_bar(stat = "identity") +
-  theme_minimal()+
   labs(x="Gender", y="Number Attrition")+
-  ggtitle("Attrition according to the Business Travel")+
   geom_text(aes(label = n), vjust = -0.5, position = position_dodge(0.9))
 a4
 
@@ -196,14 +206,13 @@ t1<- sales_repD_A %>%
 t1
 
 #WorkLifeBalance
-t2<- sales_repD_A %>%
+t2<- sales_repD %>%
   group_by(WorkLifeBalance, Attrition) %>%
   tally() %>%
   ggplot(aes(x = WorkLifeBalance, y = n,fill=Attrition)) +
   geom_bar(stat = "identity") +
   theme_minimal()+
-  labs(x="Business Travel", y="Number Attriation")+
-  ggtitle("Attrition according to the Business Travel")+
+  labs(x="Work-Life Balance", y="Number of Attritions")+
   geom_text(aes(label = n), vjust = -0.5, position = position_dodge(0.9))
 
 t2
@@ -244,3 +253,17 @@ t2
 
 
 
+#Education Levels
+table(final_data$Education)
+
+
+educ_data<- table(final_data$Education, final_data$Attrition)
+colnames(educ_data)
+
+barplot(t(educ_data)
+        , beside = T
+        )
+
+
+barplot(t(table(final_data$JobLevel, final_data$Attrition)),
+        beside = T)
