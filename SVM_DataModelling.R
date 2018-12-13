@@ -7,6 +7,8 @@ library(caret)
 library(arules)
 library(tictoc)
 library(pROC)
+library(e1071)
+library(DMwR)
 
 #Step 1: Data Preprocessing
 
@@ -66,7 +68,7 @@ svm_model_2 <- suppressWarnings(train(
   ,tuneGrid = expand.grid(C = seq(1.5), sigma = c(0.0009, 0.006))
 ))
 toc()
-
+#expand the cost in SVM
 
 predict_svm_2 <- predict(svm_model_2,newdata = svm_test)
 confusionMatrix(predict_svm_2, svm_test$Attrition)
@@ -77,3 +79,85 @@ svm_auc
 #Irrespective of the number of changes to the tuning parameters, the AUC metric remains constant
 #around the value of ~53%. This is a terrible score for a classifier - meaning it is as good 
 #as a random classifier. Hence, not preferring SVM model. 
+
+
+#Fine tuning the SVM Model
+
+#SVM Model 3
+tic('SVM_Model_3')
+svm_model_3 <- suppressWarnings(train(
+  Attrition~.,
+  data = svm_train,
+  method ='svmRadial',
+  trControl = trainControl(method = 'cv', number = 5)
+  ,tuneGrid = expand.grid(C = seq(0, 1, 0.1), sigma = c(0.0009, 0.006))
+))
+toc()
+#expand the cost in SVM
+
+predict_svm_3 <- predict(svm_model_3,newdata = svm_test)
+confusionMatrix(predict_svm_3, svm_test$Attrition)
+
+auc(as.numeric(svm_test$Attrition), as.numeric(predict_svm_3))
+
+
+#First handle the class imbalnace and then apply SVM
+
+table(svm_train$Attrition)
+
+#Using SMOTE to create balanced dataset
+
+#1. Get the attrition class count
+attr_count <- table(svm_train$Attrition)
+
+#2. Compute oversampling
+o_count <- ((0.6 * max(attr_count)) - min(attr_count)) / min(attr_count)
+
+#3. Compute under sampling
+u_count <- (0.4 * max(attr_count)) / (min(attr_count) * o_count)
+
+over_svm = round(o_count,1) * 100
+under_svm = round(u_count, 1) * 100
+
+svm_smote_data <-DMwR::SMOTE(Attrition ~.
+                              ,svm_train
+                              ,perc.over = over_svm
+                              , k = 5
+                              , perc.under = under_svm)
+
+#Check the balanced dataset
+table(svm_smote_data$Attrition)
+
+#Removing the unnecessary columns
+svm_smote_data$Age <- NULL
+svm_smote_data$PercentSalaryHike <- NULL
+svm_smote_data$HourlyRate <- NULL
+svm_smote_data$DistanceFromHome <- NULL
+
+tuned_svm = tune.svm(Attrition~., 
+                     data = svm_smote_data
+                     , cost=1:10,
+                     gamma=seq(0,1,0.01) )
+
+tuned_svm
+
+#The best parameters are observed to be gamma = 0.04 and cost = 6. Hence, using these for the model
+svm_model_4 <- svm(Attrition ~., data = svm_smote_data ,  kernel = "radial", gamma = 0.04, cost = 6)
+
+
+predict_svm_4 <- predict(svm_model_4,newdata = svm_test)
+confusionMatrix(predict_svm_4, svm_test$Attrition)
+
+auc(as.numeric(svm_test$Attrition), as.numeric(predict_svm_4))
+
+
+#Trying further
+
+svm_model_5 <- svm(Attrition ~., data = svm_smote_data ,  kernel = "radial", gamma = 0.02, cost = 13)
+
+
+predict_svm_5 <- predict(svm_model_5,newdata = svm_test)
+confusionMatrix(predict_svm_4, svm_test$Attrition)
+
+svm_auc <- auc(as.numeric(svm_test$Attrition), as.numeric(predict_svm_5))
+svm_auc
